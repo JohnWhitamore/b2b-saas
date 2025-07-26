@@ -18,7 +18,7 @@ This note attempts to describe with clarity how - and why - to set up an AWS acc
 - Provision the VPC
 - Create subnets and internet gateway
 
-This will give you a lean, modular setup upon which you can start to build.
+This will give you a lean, modular setup upon which you can start to build. It's about 2 hours work if you step through it briskly. Add another hour for reading and thinking if you're new to AWS. And add another hour if you prefer to work in a more relaxed fashion. Overall, 2-4 hours work depending on circumstances.
 
 As examples, we'll use a company name of `saasco` and a project name of `projectx` and a user name of `john`. Please change these appropriately as you develop your own project, of course.
 
