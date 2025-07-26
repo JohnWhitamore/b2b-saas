@@ -100,6 +100,8 @@ _Customization_
 
 ---
 
+We now commence implementation.
+
 ### Create a sensible folder structure
 
 Within the root `b2b-saas/` project folder, create folders called `infra/` and `fastapi_app/` so that we can keep our infrastructure (including auth) separate from the the app that we will later build and expose via FastAPI.
@@ -155,7 +157,117 @@ _Documentation_
 
 It is useful to document what we have done in human-readable form. I have created `trust_boundaries.md` and saved it in the `auth/docs/` folder.
 
-Note that there is the potential for two conflicting sources of truth: `trust_boundaries.md` and `auth_scopes.yaml` which are documenting the same thing, one for human readers and one for machines. It is therefore useful to put a short note at the top of each file referring to the other file.
+Note that there is the potential for two conflicting sources of truth: `trust_boundaries.md` and `auth_scopes.yaml` which are documenting the same thing, one for human readers and one for machines. It is therefore useful to put a short note within each file referring to the other file.
+
+### Token verification and scope enforcement
+
+We now translate the semantic contract that we have defined into executable logic. We'll create two Python files, both of which should be saved in the `auth/fastapi/` folder.
+
+`middleware.py`: performs early validation of incoming requests by:
+
+- decoding JWTs from headers or cookies
+- verifying token signature and expiry
+- extracting scopes and caching claims in request state
+
+Note that you will need to enter 
+
+`dependencies.py`: defines re-usable `Depends()` functions using a `require_scope()` function so that, later in the API router, we'll be able to write something like:
+
+```python
+@app.get("/forecast")
+async def get_forecast(scope=require_scope("read:forecast")):
+    ...
+```
+
+### Configure Auth0 M2M application
+
+The motivation of this step is to construct a semantic and operational boundary between `ClientCo` and the FastAPI surface. The boundary will be expressive, enforceable and auditable. Note: M2M means "machine to machine".
+
+Specific objectives of this step are:
+
+- Designate an actor (`ClientCo`) and authorise it to perform specific rules, such as pass data to the API, read demand forecasts and inventory levels from the API.
+- Enable secure, token-based communication via OAuth 2.0 Client Credentials Grant. This means no user prompts or logins, just clean service-to-service messaging.
+- Embed intentional access patterns through scopes and audiences so that each call reflects a narrative of permission and purpose.
+- Prepare the token infrastructure that let's us later verify claims and protect routes in Fast API.
+
+_Auth0 account_
+
+Go to [Auth0](https://autho.com) and sign up or log in.
+
+_Application set up_
+
+1. Left-hand menu: Applications/Applications
+2. Top-right: Create Application
+3. Click `[...]` and then:
+   1. Settings
+      1. Name: `clientco-m2m-access` (modify as appropriate)
+      2. Application Type: select Machine to Machine
+      3. Copy the Client ID and Client Secret to a safe place.
+      4. Click Save.
+
+_Client API registration_
+
+Still in the Auth0 dashboard:
+
+1. Left-hand menu: Applications/APIs
+2. Click the Create API button
+3. Name: `clientco-fastapi-service`. Note, use a different name to the one you entered in Settings (above).
+4. Identifier: a URL such as `https://clientco/api`. This needs to look like a URL but it doesn't need to be hosted or to resolve to anything. It is used as the `aud` (audience) claim in access tokens.
+5. Leave the other two fields at their default values, JWT and RS256.
+6. Click Create (or Save)
+
+_Scope definition_
+
+Scopes define what the token holder is allowed to do. Auth0 will embed them in the `scope` field of access tokens.
+
+Still in the Auth0 dashboard:
+
+1. Left-hand menu: Applications/APIs
+2. Click on the newly-created API `clientco-fastapi-service`
+3. Click on the Permissions tab
+4. Add two permissions:
+   1. Permission:`read:data`; Description `ClientCo` enabled to read data
+   2. Permission:`write:data`; Description `ClientCo` enabled to write data
+
+Further permissions can be added later in the same way.
+
+_Implement token verification in FastAPi_
+
+We now create the runtime logic to:
+
+- Accept tokens from `ClientCo`
+- Verify that they are signed correctly using RS256 via Auth0's public key
+- Confirm that the token was issued for the API by checking the `aud` claim that we set earlier
+- Extract scopes for endpoint-level access control
+
+I modified the `dependencies.py` file to incorporate two new functions: `get_public_key()` and `verify_token_and_scope()`. 
+
+At this stage it is also necessary to replace two placeholder values in `dependencies.py` as follows:
+
+1. `AUTH0_DOMAIN`: replace `your_tenant` with your tenant ID which can be found in Settings (bottom left of dashboard)
+2. Ensure that `API_IDENTIFIER` is the same as the `aud` value set earlier e.g. `https://clientco/api`
+
+_Granting access_
+
+
+
+_Token flow testing_
+
+
+
+
+
+
+
+| Sub-Step                                        | Description                                                  | Purpose                                                 |
+| ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| **1.1 Define Trust Boundaries**                 | Clarify what ClientCo is *allowed* to do                     | Ingest, access results, not manipulate modeling logic   |
+| **1.2 Choose Auth0 Flow Type**                  | Likely OAuth 2.0 with machine-to-machine (M2M) client credentials | Fits for server-to-server API access, no user UI needed |
+| **1.3 Configure Auth0 Application**             | Create a M2M app with proper scopes                          | Lightweight, no need for Universal Login                |
+| **1.4 Define API Audience & Scopes**            | Example scopes: `ingest:data`, `read:forecast`, `read:inventory` | Enables role-based endpoint access                      |
+| **1.5 Implement Token Verification in FastAPI** | Middleware or dependency-based JWT decoding                  | Secures the API surface cleanly                         |
+| **1.6 Protect Routes Based on Scope or Claim**  | Endpoint-level protection using scopes or custom claims      | Operational clarity and least privilege enforcement     |
+| **1.7 Test with Sample ClientCo Credentials**   | Create test client, obtain token, exercise full workflow     | Validates auth from ingest to output                    |
 
 
 
