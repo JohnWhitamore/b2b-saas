@@ -162,19 +162,3 @@ Note that there is the potential for two conflicting sources of truth: `trust_bo
 
 
 
-
-------
-
-#### ✅ 3. Archive This as a Living Artifact
-
-Create a file in your repo:
-
-```bash
-infra/auth/trust_boundaries.md
-```
-
-Document the above contract. This becomes a compositional unit you can refer to when configuring Auth0 (Step 1.2), protecting routes (Step 1.6), and onboarding new clients.
-
-------
-
-If you're happy with this framing, we’ll move cleanly into **Sub-Step 1.2: Choose Auth0 Flow Type** and begin configuring. Ready when you are.
