@@ -1,3 +1,6 @@
+# Machine-readable scopes defined by SaaSCo
+# Narrative framing available in: infra/auth/docs/trust_boundaries.md
+
 permissions:
   - ingest:data         # POST data to SaaSCo
   - read:forecast       # GET forecast results
