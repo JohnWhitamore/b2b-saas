@@ -10,7 +10,7 @@ This note discusses and implements authentication (AuthN) and authorization (Aut
 
 Authentication and authorization are primary concerns in an environment with a) several users, including programmatic users and b) people using coding assistants. Even before thinking about questions of effective cyber-security, those two points combine into the rhetorical question "do you want to vibe code an automated pipeline that will somehow manage to drop your production database?".
 
-The first part of the note steps down through high-, medium- and low-level concepts to provide clarity before we commence implementation. The second part of the note is all implementation.
+The first part of the note steps down through high-, medium- and low-level concepts to provide clarity before we commence implementation. The second part of the note is all about implementation and uses (as a running example) `SaaSCo` to represent the B2B SaaS company and `ClientCo` to represent one of their enterprise clients.
 
 ---
 
@@ -100,5 +100,81 @@ _Customization_
 
 ---
 
+### Create a sensible folder structure
+
+Within the root `b2b-saas/` project folder, create folders called `infra/` and `fastapi_app/` so that we can keep our infrastructure (including auth) separate from the the app that we will later build and expose via FastAPI.
+
+Inside the `infra/` folder, create this structure. We'll create the files that it mentions as we go along.
+
+```bash
+auth/
+├── config/
+│   └── auth_scopes.yaml       # Formalised permission contract
+│
+├── fastapi/
+│   ├── middleware.py          # Token verification logic (JWT decoding, scope checks)
+│   └── dependencies.py        # Re-usable FastAPI auth dependencies
+│
+├── tests/
+│   └── test_auth_flow.py      # End-to-end: token, scopes, endpoint access
+│
+├── docs/
+│   └── trust_boundaries.md    # Narrative articulation of access boundaries
+│
+└── clientco/
+    ├── credentials.json       # ClientCo credentials (saved securely)
+    └── sample_requests.http   # Example ingest and result retrieval calls using token
+```
+
+### Permission matrix
+
+Define a minimal permission matrix that establishes a clear access model for how `ClientCo` interacts with `SaaSCo`. We do this by creating `auth_scopes.yaml` as below and saving it under `auth/config/` as in the folder structure chart above.
+
+```yaml
+permissions:
+  - ingest:data        	# POST data to SaaSCo
+  - read:forecast      	# GET forecast results
+  - read:inventory     	# GET inventory results
+restrictions:
+  - no:execute_modeling # Modeling logic cannot be triggered manually
+  - no:modify_pipeline  # Pipeline orchestration is internal only
+```
+
+This gives us a semantic contract ready to enforce at the authentication layer. We use it to constrain the API surface as follows: 
+
+| Endpoint          | Method | Scope Required   | Description                       |
+| ----------------- | ------ | ---------------- | --------------------------------- |
+| `/ingest`         | POST   | `ingest:data`    | `ClientCo` pushes data            |
+| `/forecast`       | GET    | `read:forecast`  | Retrieve demand forecast          |
+| `/inventory`      | GET    | `read:inventory` | Retrieve inventory optimization   |
+| *(internal only)* | —      | *restricted*     | Modelling orchestration and logic |
+
+By the way, note that we have to use American spellings for operations and definitions, such as "modeling" with one "l". It's going to be ok :)
+
+_Documentation_
+
+It is useful to document what we have done in human-readable form. I have created `trust_boundaries.md` and saved it in the `auth/docs/` folder.
+
+Note that there is the potential for two conflicting sources of truth: `trust_boundaries.md` and `auth_scopes.yaml` which are documenting the same thing, one for human readers and one for machines. It is therefore useful to put a short note at the top of each file referring to the other file.
 
 
+
+
+
+
+
+------
+
+#### ✅ 3. Archive This as a Living Artifact
+
+Create a file in your repo:
+
+```bash
+infra/auth/trust_boundaries.md
+```
+
+Document the above contract. This becomes a compositional unit you can refer to when configuring Auth0 (Step 1.2), protecting routes (Step 1.6), and onboarding new clients.
+
+------
+
+If you're happy with this framing, we’ll move cleanly into **Sub-Step 1.2: Choose Auth0 Flow Type** and begin configuring. Ready when you are.
