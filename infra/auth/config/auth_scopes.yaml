@@ -1,0 +1,7 @@
+permissions:
+  - ingest:data         # POST data to SaaSCo
+  - read:forecast       # GET forecast results
+  - read:inventory      # GET inventory results
+restrictions:
+  - no:execute_modeling # Modelling logic cannot be triggered manually
+  - no:modify_pipeline  # Pipeline orchestration is internal only

@@ -12,6 +12,8 @@ Authentication and authorization are primary concerns in an environment with a) 
 
 The first part of the note steps down through high-, medium- and low-level concepts to provide clarity before we commence implementation. The second part of the note is all implementation.
 
+---
+
 ### High-level: concepts
 
 Authentication is the act of verifying identity: confirming that a user, machine or service is who it claims to be. It’s the gatekeeper before any access is granted.
@@ -95,6 +97,8 @@ _Customization_
 - Branding: custom login UI, email templates and domains.
 - Actions: JavaScript snippets triggered during login/signup.
 - Fine-Grained Authorization (FGA): relationship-based access control inspired by Google Zanzibar.
+
+---
 
 
 
