@@ -130,7 +130,7 @@ _2. CIDR block_
 
 CIDR is Classless Inter-Domain Routing.
 
-CIDR is a method for allocating IP address ranges and defining subnets. Instead of using rigid “classful” blocks (like Class A, B, C), CIDR allows you to specify IP ranges with flexible prefix lengths using notation like `192.168.0.0/24`.
+CIDR is a method for allocating IP address ranges and defining subnets. Instead of using rigid "classful" blocks (like Class A, B, C), CIDR allows you to specify IP ranges with flexible prefix lengths using notation like `192.168.0.0/24`.
 
 We need a CIDR block for:
 
