@@ -32,7 +32,7 @@ A “role” is a bundle of permissions, defined independently from users. A CI 
 
 The Security Token Service (STS) allows a user to take on a role by temporarily stepping into the permissions of that role. Taking on the role yields credentials which typically last for 1–12 hours (depending on configuration). The motivation for issuing credentials which are temporary (and not permanent) is to reinforce good security boundaries and lifecycle clarity. In AWS terminology, a user _assumes_ (rather than _takes on_) a role.
 
-The result: A user assumes a role to do things, borrowing exactly the permissions they need, just for the duration required.
+The result: a user assumes a role to do things, borrowing exactly the permissions they need, just for the duration required.
 
 ### IAM: Identity and Access Management
 
@@ -167,8 +167,6 @@ A well-informed choice of CIDR prefix length takes into account how many IP addr
 | `/22` | 1022       | Larger clusters or shared services   |
 | `/16` | 65,534     | Entire VPC or enterprise-scale block |
 
-
-
 ### Provision the VPC
 
 You’ll define a CIDR block (e.g. `10.0.0.0/16`) and give the VPC the name `saasco-vpc-main`. Enter this command at the CLI (or Power Shell).
@@ -199,8 +197,6 @@ aws ec2 describe-vpcs \
 ```
 
 Look for `"State": "available"` in the output. If it’s still `"pending"` after 5 minutes, that’s unusual but not necessarily broken. AWS sometimes lags in surfacing state transitions via CLI.
-
-
 
 ### Create subnets and internet gateway
 
@@ -265,3 +261,5 @@ aws ec2 attach-internet-gateway \
   --internet-gateway-id YOUR_IGW_ID \
   --profile cli-operator
 ```
+
+### Done
